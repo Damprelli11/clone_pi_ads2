@@ -1,0 +1,109 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Evento
+{
+    public string Nome { get; set; }
+    public DateTime Data { get; set; }
+    public string Local { get; set; }
+
+    public Evento(string nome, DateTime data, string local)
+    {
+        Nome = nome;
+        Data = data;
+        Local = local;
+    }
+
+    public override string ToString()
+    {
+        return $"{Nome} - {Data:dd/MM/yyyy} - {Local}";
+    }
+}
+
+class EventReceiver
+{
+    public async Task<List<Evento>> ReceiveAsync()
+    {
+        await Task.Delay(500); // Simula o tempo de resposta
+        
+        return new List<Evento>
+        {
+            new Evento("Hackathon Criativo", DateTime.Now.AddDays(5), "Auditório Principal"),
+            new Evento("Oficina de Design", DateTime.Now.AddDays(10), "Sala 3"),
+            new Evento("Palestra de Inovação", DateTime.Now.AddDays(15), "Online")
+        };
+    }
+}
+
+class DashboardController
+{
+    public List<Evento> ProcessEvents(List<Evento> eventos)
+    {
+        return eventos.Where(e => e.Data > DateTime.Now).ToList(); // Filtra eventos futuros
+    }
+}
+
+class EventSender
+{
+    public async Task SendAsync(List<Evento> eventos)
+    {
+        await Task.Delay(500); // Simula o tempo de envio
+        
+        Console.WriteLine("Eventos enviados:");
+        foreach (var evento in eventos)
+        {
+            Console.WriteLine(evento);
+        }
+    }
+}
+
+class MainSystem
+{
+    private readonly EventReceiver _eventReceiver;
+    private readonly DashboardController _dashboardController;
+    private readonly EventSender _eventSender;
+
+    public MainSystem()
+    {
+        _eventReceiver = new EventReceiver();
+        _dashboardController = new DashboardController();
+        _eventSender = new EventSender();
+    }
+
+    public async Task StartAsync()
+    {
+        try
+        {
+            Console.WriteLine("Iniciando o sistema de gestão de eventos...");
+
+            // Recebe a lista de eventos
+            List<Evento> eventosRecebidos = await _eventReceiver.ReceiveAsync();
+            Console.WriteLine($"Eventos recebidos: {eventosRecebidos.Count}");
+
+            // Processa os eventos recebidos
+            List<Evento> eventosProcessados = _dashboardController.ProcessEvents(eventosRecebidos);
+            Console.WriteLine($"Eventos processados: {eventosProcessados.Count}");
+
+            // Envia os eventos processados para o dashboard
+            await _eventSender.SendAsync(eventosProcessados);
+            Console.WriteLine("Eventos enviados para o dashboard com sucesso!");
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro no sistema: " + ex.Message);
+        }
+    }
+}
+
+// Classe principal com ponto de entrada correto
+class Program
+{
+    static void Main(string[] args)
+    {
+        var system = new MainSystem();
+        system.StartAsync().GetAwaiter().GetResult(); // Executa a tarefa assíncrona
+    }
+}
